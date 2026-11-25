@@ -8,6 +8,21 @@ import { TsFormatter } from './formatter/TsFormatter';
 
 let statusBarItem: vscode.StatusBarItem;
 
+async function organizeDocumentImports(document: vscode.TextDocument): Promise<void> {
+    const actions = await vscode.commands.executeCommand<vscode.CodeAction[]>(
+      'vscode.executeCodeActionProvider', document.uri,
+      new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)),
+      vscode.CodeActionKind.SourceOrganizeImports.value, 100);
+    for (const action of actions ?? []) {
+        // Our command-backed action delegates here; do not invoke it recursively.
+        if (action.disabled || action.command?.command === 'accentTs.format.organizeImports') continue;
+        if (action.edit) await vscode.workspace.applyEdit(action.edit);
+        if (action.command) {
+            await vscode.commands.executeCommand(action.command.command, ...(action.command.arguments ?? []));
+        }
+    }
+}
+
 function isTargetLanguage(languageId: string): boolean {
     return (
       languageId === 'typescript' ||
@@ -66,37 +81,36 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
       vscode.commands.registerCommand(
         'accentTs.format.document',
-        async () => {
+        async (uri?: vscode.Uri) => {
             const editor = vscode.window.activeTextEditor;
-            if (!editor
-              || !isTargetLanguage(editor.document.languageId)) {
+            const document = uri ? await vscode.workspace.openTextDocument(uri) : editor?.document;
+            if (!document || !isTargetLanguage(document.languageId)) {
                 vscode.window.showWarningMessage(
                   'Accent Typescript Formatter: Please open a TypeScript file to format.');
                 return;
             }
-            const cfg = getFormatterConfig(editor.document);
+            const cfg = getFormatterConfig(document);
             if (!cfg.enabled) return;
             if (cfg.organizeImportsOnFormat) {
                 try {
-                    await vscode.commands.executeCommand(
-                      'editor.action.organizeImports');
+                    await organizeDocumentImports(document);
                 } catch {
                 // Ignore if organizeImports is unavailable
                 }
             }
             const edits =
               await formattingProvider.provideDocumentFormattingEdits(
-                editor.document,
+                document,
                 {
-                    tabSize: editor.options.tabSize as number,
-                    insertSpaces: editor.options.insertSpaces as boolean
+                    tabSize: cfg.tabSize,
+                    insertSpaces: cfg.insertSpaces
                 },
                 new vscode.CancellationTokenSource().token);
             if (edits
               && edits.length > 0) {
                 const workspaceEdit = new vscode.WorkspaceEdit();
                 workspaceEdit.set(
-                  editor.document.uri,
+                  document.uri,
                   edits);
                 await vscode.workspace.applyEdit(workspaceEdit);
             }
@@ -136,17 +150,16 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
       vscode.commands.registerCommand(
         'accentTs.format.organizeImports',
-        async () => {
+        async (uri?: vscode.Uri) => {
             const editor = vscode.window.activeTextEditor;
-            if (!editor
-              || !isTargetLanguage(editor.document.languageId)) {
+            const document = uri ? await vscode.workspace.openTextDocument(uri) : editor?.document;
+            if (!document || !isTargetLanguage(document.languageId)) {
                 vscode.window.showWarningMessage(
                   'Accent Typescript Formatter: Please open a TypeScript file to organize imports.');
                 return;
             }
-            if (!getFormatterConfig(editor.document).enabled) return;
-            await vscode.commands.executeCommand(
-              'editor.action.organizeImports');
+            if (!getFormatterConfig(document).enabled) return;
+            await organizeDocumentImports(document);
             vscode.window.showInformationMessage(
               'Accent Typescript Formatter: Imports organized.');
         }));

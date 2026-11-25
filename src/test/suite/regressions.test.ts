@@ -4,7 +4,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { TsFormatter } from '../../formatter/TsFormatter';
-import { getFormatterConfig } from '../../formatter/FormattingConfig';
+import { getFormatterConfig, parseEclipseXmlConfig } from '../../formatter/FormattingConfig';
 import { AstSyntaxValidator } from '../../formatter/AstSyntaxValidator';
 import { FormattingEditProvider } from '../../providers/FormattingEditProvider';
 import { CodeActionProvider } from '../../providers/CodeActionProvider';
@@ -26,6 +26,72 @@ async function withSettings(values: Record<string, unknown>, run: () => Promise<
 
 describe('Review regressions', function () {
   this.timeout(15000);
+
+  it('preserves indentation when formatting a single selected statement', async () => {
+    for (const insertSpaces of [true, false]) {
+      const indent = insertSpaces ? '    ' : '\t';
+      const selected = `${indent}const x=1;`;
+      const source = `function f() {\n${selected}\n${indent}return x;\n}\n`;
+      const formatter = new TsFormatter({ ...getFormatterConfig(), tabSize: 4, insertSpaces });
+      const start = source.indexOf(selected);
+      const output = await formatter.formatRange(source, start, start + selected.length, 'typescript');
+      assert.strictEqual(output, source.replace(selected, `${indent}const x = 1;`));
+      assert.strictEqual(await formatter.formatRange(output, start,
+        output.indexOf('\n', start), 'typescript'), output);
+    }
+  });
+
+  it('loads only the selected XML profile and does not borrow other profile settings', () => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'formatter-profiles-'));
+    const file = path.join(directory, 'profiles.xml');
+    try {
+      fs.writeFileSync(file, `<profiles>
+        <profile name="Two"><setting id="org.eclipse.jdt.core.formatter.tabulation.size" value="2"/>
+          <setting id="org.eclipse.jdt.core.formatter.lineSplit" value="80"/></profile>
+        <profile name="Eight &amp; Tabs"><setting id="org.eclipse.jdt.core.formatter.tabulation.size" value="8"/>
+          <setting id="org.eclipse.jdt.core.formatter.tabulation.char" value="tab"/></profile>
+      </profiles>`);
+      assert.deepStrictEqual(parseEclipseXmlConfig(file, 'Eight & Tabs'), { tabSize: 8, insertSpaces: false });
+      assert.deepStrictEqual(parseEclipseXmlConfig(file), { tabSize: 2, maxLineLength: 80 });
+      assert.deepStrictEqual(parseEclipseXmlConfig(file, 'Missing'), {});
+    } finally {
+      fs.rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('runs code actions against their document without changing the active editor', async () => {
+    await vscode.extensions.getExtension('LemuelAdane.accent-typescript-formatter')!.activate();
+    await withSettings({ enabled: true, onSave: false, formatOnChange: false,
+      'imports.organizeOnFormat': false }, async () => {
+      const active = await vscode.workspace.openTextDocument({ language: 'typescript', content: 'const active=1;' });
+      const target = await vscode.workspace.openTextDocument({ language: 'typescript', content: 'const target=1;' });
+      await vscode.window.showTextDocument(active);
+      const token = new vscode.CancellationTokenSource();
+      const provider = vscode.languages.registerCodeActionsProvider('typescript', {
+        provideCodeActions(document) {
+          if (document.uri.toString() !== target.uri.toString()) return [];
+          const action = new vscode.CodeAction('Test import edit', vscode.CodeActionKind.SourceOrganizeImports);
+          action.edit = new vscode.WorkspaceEdit();
+          action.edit.insert(document.uri, document.positionAt(0), '// organized\n');
+          return [action];
+        }
+      }, { providedCodeActionKinds: [vscode.CodeActionKind.SourceOrganizeImports] });
+      try {
+        const actions = new CodeActionProvider().provideCodeActions(target,
+          new vscode.Range(0, 0, 0, 0), { diagnostics: [], triggerKind: vscode.CodeActionTriggerKind.Invoke, only: undefined }, token.token);
+        for (const id of ['accentTs.format.document', 'accentTs.format.organizeImports']) {
+          const command = actions.find(action => action.command?.command === id)!.command!;
+          await vscode.commands.executeCommand(command.command, ...command.arguments!);
+          assert.strictEqual(active.getText(), 'const active=1;');
+          assert.strictEqual(vscode.window.activeTextEditor?.document, active);
+        }
+        assert.strictEqual(target.getText(), '// organized\nconst target = 1;\n');
+      } finally {
+        provider.dispose();
+        token.dispose();
+      }
+    });
+  });
 
   it('rejects selection edits that introduce syntax errors in the enclosing document', async () => {
     for (const language of ['typescript', 'javascript']) {

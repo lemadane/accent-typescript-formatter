@@ -116,6 +116,7 @@ function indentStructure(source: string, config: FormatterConfig, languageId: st
     if (/^[ \t]*$/.test(lines[location.line].slice(0, location.character))) widths.set(location.line, width);
   };
   const visit = (node: ts.Node, width: number): void => {
+    if (node.kind === ts.SyntaxKind.EndOfFileToken) return;
     mark(node.getStart(file), width);
     for (const comment of ts.getLeadingCommentRanges(source, node.pos) ?? []) mark(comment.pos, width);
     if (ts.isBlock(node) || ts.isModuleBlock(node) || ts.isClassDeclaration(node)

@@ -119,7 +119,7 @@ export function getFormatterConfig(document?: any): FormatterConfig {
 
   export function parseEclipseXmlConfig(
       filePathOrUrl: string,
-      _profileName?: string,
+      profileName?: string,
       document?: any,
   ): Partial<FormatterConfig> {
   let resolvedPath = filePathOrUrl;
@@ -137,9 +137,21 @@ export function getFormatterConfig(document?: any): FormatterConfig {
   if (!fs.existsSync(resolvedPath)) {
     return {};
   }
-  const xmlContent = fs.readFileSync(
+  let xmlContent = fs.readFileSync(
       resolvedPath,
       'utf8');
+  const profiles = [...xmlContent.matchAll(/<profile\b([^>]*)>([\s\S]*?)<\/profile\s*>/g)];
+  if (profiles.length || profileName) {
+    const selected = profileName
+      ? profiles.find(profile => {
+        const name = profile[1].match(/\bname\s*=\s*(["'])(.*?)\1/)?.[2];
+        return name?.replace(/&(quot|apos|lt|gt|amp);/g, (_, entity: string) =>
+          ({ quot: '"', apos: "'", lt: '<', gt: '>', amp: '&' }[entity]!)) === profileName;
+      })
+      : profiles[0];
+    if (!selected) return {};
+    xmlContent = selected[2];
+  }
   const overrides: Partial<FormatterConfig> = {};
   const tabSizeMatch = xmlContent.match(
       /id="org.eclipse.jdt.core.formatter.tabulation.size"\s+value="(\d+)"/);
