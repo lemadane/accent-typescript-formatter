@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+
+# Compiled output and TypeScript build cache
+out/
+dist/
+*.tsbuildinfo
+
+# VS Code extension test downloads and packaged extensions
+.vscode-test/
+.vscode-test-web/
+*.vsix
+
+# Test coverage and tool caches
+coverage/
+.nyc_output/
+.cache/
+.eslintcache
+
+# Logs
+*.log
+
+# Local environment files (keep example templates)
+.env
+.env.*
+!.env.example
+!.env.*.example
+!.env.sample
+!.env.template
+
+# Local editor state (keep shared VS Code configuration)
+.idea/
+*.swp
+*.swo
+*~
+.vscode/*.local.json
+
+# Operating system metadata
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini

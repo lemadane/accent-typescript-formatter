@@ -1,0 +1,183 @@
+{
+  "name": "accent-typescript-formatter",
+  "displayName": "Accent Typescript Formatter",
+  "description": "Enterprise-grade TypeScript formatter extension for Visual Studio Code.",
+  "version": "0.1.0",
+  "publisher": "LemuelAdane",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/accent/vscode-typescript-formatter.git"
+  },
+  "icon": "icon.png",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Formatters",
+    "Programming Languages"
+  ],
+  "keywords": [
+    "typescript",
+    "formatter",
+    "accent",
+    "imports"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onStartupFinished",
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact",
+    "onLanguage:javascript",
+    "onLanguage:javascriptreact"
+  ],
+  "configurationDefaults": {
+    "[typescript]": {
+      "editor.defaultFormatter": "LemuelAdane.accent-typescript-formatter"
+    },
+    "[typescriptreact]": {
+      "editor.defaultFormatter": "LemuelAdane.accent-typescript-formatter"
+    },
+    "[javascript]": {
+      "editor.defaultFormatter": "LemuelAdane.accent-typescript-formatter"
+    },
+    "[javascriptreact]": {
+      "editor.defaultFormatter": "LemuelAdane.accent-typescript-formatter"
+    }
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "accentTs.format.document",
+        "title": "Accent Typescript Formatter: Format Document",
+        "category": "Typescript Formatter"
+      },
+      {
+        "command": "accentTs.format.selection",
+        "title": "Accent Typescript Formatter: Format Selection",
+        "category": "Typescript Formatter"
+      },
+      {
+        "command": "accentTs.format.organizeImports",
+        "title": "Accent Typescript Formatter: Organize Imports",
+        "category": "Typescript Formatter"
+      },
+      {
+        "command": "accentTs.format.selectProfile",
+        "title": "Accent Typescript Formatter: Select Formatting Profile",
+        "category": "Typescript Formatter"
+      },
+      {
+        "command": "accentTs.format.exportConfig",
+        "title": "Accent Typescript Formatter: Export Default Accent Formatter XML Config",
+        "category": "Typescript Formatter"
+      },
+      {
+        "command": "accentTs.format.setAsDefault",
+        "title": "Accent Typescript Formatter: Set as Default Typescript Formatter",
+        "category": "Typescript Formatter"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "Accent Typescript Formatter",
+      "properties": {
+        "accentTs.format.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable Accent Typescript Formatter for TypeScript files."
+        },
+        "accentTs.format.preset": {
+          "type": "string",
+          "enum": [
+            "A Standard",
+            "Prettier Default",
+            "Google-like",
+            "Airbnb-like"
+          ],
+          "default": "A Standard",
+          "description": "Pre-configured TypeScript formatting style profile."
+        },
+        "accentTs.format.settings.url": {
+          "type": "string",
+          "default": "",
+          "description": "Path or URL to custom XML settings profile file."
+        },
+        "accentTs.format.settings.profile": {
+          "type": "string",
+          "default": "",
+          "description": "Specific profile name to use from the XML settings file."
+        },
+        "accentTs.format.tabSize": {
+          "type": "integer",
+          "default": 4,
+          "description": "Number of spaces per indentation level.",
+          "minimum": 1
+        },
+        "accentTs.format.insertSpaces": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use spaces instead of tabs for indentation."
+        },
+        "accentTs.format.maxLineLength": {
+          "type": "integer",
+          "default": 70,
+          "description": "Maximum character length per line before wrapping."
+        },
+        "accentTs.format.organizeImportsOnFormat": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically sort and clean up import statements when formatting."
+        },
+        "accentTs.format.imports.organizeOnFormat": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically sort and clean up import statements when formatting (alias)."
+        },
+        "accentTs.format.onSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically format TypeScript document on save."
+        },
+        "accentTs.format.formatOnChange": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically trigger formatter when Typescript code changes in the editor."
+        },
+        "accentTs.format.continuationIndent": {
+          "type": "integer",
+          "default": 2,
+          "minimum": 0,
+          "maximum": 32,
+          "description": "Continuation indentation in columns, independent of block indentation."
+        }
+      }
+    },
+    "keybindings": [
+      {
+        "command": "accentTs.format.document",
+        "key": "ctrl+alt+l",
+        "mac": "cmd+alt+l",
+        "when": "editorTextFocus && (editorLangId == typescript || editorLangId == typescriptreact || editorLangId == javascript || editorLangId == javascriptreact)"
+      }
+    ]
+  },
+  "license": "MIT",
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -w -p ./",
+    "pretest": "npm run compile",
+    "test": "node ./out/test/runTest.js",
+    "package": "npx @vscode/vsce package"
+  },
+  "dependencies": {
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^18.19.130",
+    "@types/vscode": "~1.75.0",
+    "@vscode/test-electron": "^2.5.2",
+    "mocha": "^10.8.2"
+  }
+}

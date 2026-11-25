@@ -1,0 +1,16 @@
+{
+  "editor.formatOnSave": true,
+  "editor.formatOnType": false,
+  "accentTs.format.onSave": true,
+  "accentTs.format.formatOnChange": false,
+  "editor.defaultFormatter": "vscode.typescript-language-features",
+  "[typescript]": {
+    "editor.defaultFormatter": "LemuelAdane.accent-typescript-formatter"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "LemuelAdane.accent-typescript-formatter"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  }
+}

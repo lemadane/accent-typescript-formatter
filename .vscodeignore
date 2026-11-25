@@ -1,0 +1,17 @@
+.vscode/**
+.vscode-test/**
+.agents/**
+.codex/**
+src/**
+out/test/**
+**/*.map
+*.vsix
+tsconfig.json
+package-lock.json
+.gitignore
+# The formatter uses the TypeScript API, not its CLI, declarations, or locales.
+node_modules/typescript/bin/**
+node_modules/typescript/lib/**
+!node_modules/typescript/lib/typescript.js
+node_modules/typescript/README.md
+node_modules/typescript/SECURITY.md
