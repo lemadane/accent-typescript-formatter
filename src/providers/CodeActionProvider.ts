@@ -12,7 +12,8 @@ export class CodeActionProvider
       _range: vscode.Range | vscode.Selection,
       _context: vscode.CodeActionContext,
       _token: vscode.CancellationToken): Array<vscode.CodeAction> {
-        if (!getFormatterConfig(document).enabled) return [];
+        if (!getFormatterConfig(document)
+          .enabled) return [];
         const actions: vscode.CodeAction[] = [];
         const organizeImportsAction = new vscode.CodeAction(
           'Organize TS Imports (A)',

@@ -28,13 +28,19 @@ export class TypeScriptAstFormattingEngine
               scriptKind);
             if (!sourceCode.includes('\n')
               && !sourceCode.includes('\r')) {
-                const indentation = sourceCode.match(/^[ \t]*/)?.[0] ?? '';
+                const indentation = sourceCode.match(/^[ \t]*/)?.[0]
+                  ?? '';
                 const printed = ts.createPrinter(
                   {
                       newLine: ts.NewLineKind.LineFeed
                   })
                   .printFile(sourceFile);
-                return printed.split('\n').map(line => line ? indentation + line : line).join('\n');
+                return printed.split('\n')
+                  .map(
+                      line => line
+                      ? indentation + line
+                      : line)
+                  .join('\n');
             }
             const host: ts.LanguageServiceHost = {
                 getCompilationSettings: () => ({

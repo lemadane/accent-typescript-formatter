@@ -1,4 +1,4 @@
 export interface FormattingRule {
-  name: string;
-  apply(lines: string[]): string[];
+    name: string;
+    apply(lines: string[]): string[];
 }

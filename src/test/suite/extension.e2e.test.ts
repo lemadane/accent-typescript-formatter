@@ -442,10 +442,14 @@ describe(
                   && ts.isArrowFunction(node.arguments[1])) {
                     command = node.arguments[1];
                 }
-                ts.forEachChild(node, findCommand);
+                ts.forEachChild(
+                  node,
+                  findCommand);
             };
             findCommand(sourceFile);
-            assert.ok(command, 'Expected set-as-default command to be registered.');
+            assert.ok(
+              command,
+              'Expected set-as-default command to be registered.');
             const extensionIds: string[] = [];
             const updates: string[][] = [];
             const inspectCommand = (node: ts.Node): void => {
@@ -460,29 +464,46 @@ describe(
                   && ts.isPropertyAccessExpression(node.expression)
                   && node.expression.name.text === 'update') {
                     const receiver = node.expression.expression;
-                    assert.ok(ts.isCallExpression(receiver));
-                    assert.ok(ts.isPropertyAccessExpression(receiver.expression));
-                    assert.strictEqual(receiver.expression.name.text, 'getConfiguration');
+                    assert.ok(
+                      ts.isCallExpression(receiver));
+                    assert.ok(
+                      ts.isPropertyAccessExpression(
+                        receiver.expression));
+                    assert.strictEqual(
+                      receiver.expression.name.text,
+                      'getConfiguration');
                     const scope = receiver.arguments[0];
-                    assert.ok(scope && ts.isStringLiteral(scope));
-                    updates.push([
-                        scope.text,
-                        ...node.arguments.map(argument =>
-                            ts.isStringLiteral(argument)
-                              ? argument.text
-                              : ts.createPrinter().printNode(
-                                  ts.EmitHint.Unspecified, argument, sourceFile)),
+                    assert.ok(
+                      scope && ts.isStringLiteral(scope));
+                    updates.push(
+                      [
+                      scope.text,
+                      ...node.arguments.map(
+                          argument =>
+                        ts.isStringLiteral(argument)
+                          ? argument.text
+                          : ts.createPrinter()
+                            .printNode(
+                              ts.EmitHint.Unspecified,
+                              argument,
+                              sourceFile)),
                     ]);
                 }
-                ts.forEachChild(node, inspectCommand);
+                ts.forEachChild(
+                  node,
+                  inspectCommand);
             };
             inspectCommand(command);
-            assert.deepStrictEqual(extensionIds, [expectedId]);
-            assert.deepStrictEqual(updates, [
-                ['[typescript]', 'editor.defaultFormatter', 'extensionId',
-                    'vscode.ConfigurationTarget.Global'],
-                ['[typescriptreact]', 'editor.defaultFormatter', 'extensionId',
-                    'vscode.ConfigurationTarget.Global'],
+            assert.deepStrictEqual(
+              extensionIds,
+              [expectedId]);
+            assert.deepStrictEqual(
+              updates,
+              [
+              ['[typescript]', 'editor.defaultFormatter', 'extensionId',
+              'vscode.ConfigurationTarget.Global'],
+              ['[typescriptreact]', 'editor.defaultFormatter', 'extensionId',
+              'vscode.ConfigurationTarget.Global'],
             ]);
         });
       it(

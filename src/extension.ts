@@ -8,17 +8,31 @@ import { TsFormatter } from './formatter/TsFormatter';
 
 let statusBarItem: vscode.StatusBarItem;
 
-async function organizeDocumentImports(document: vscode.TextDocument): Promise<void> {
-    const actions = await vscode.commands.executeCommand<vscode.CodeAction[]>(
-      'vscode.executeCodeActionProvider', document.uri,
-      new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)),
-      vscode.CodeActionKind.SourceOrganizeImports.value, 100);
-    for (const action of actions ?? []) {
+async function organizeDocumentImports(
+  document: vscode.TextDocument): Promise<void> {
+    const actions =
+      await vscode.commands.executeCommand<vscode.CodeAction[]>(
+        'vscode.executeCodeActionProvider',
+        document.uri,
+        new vscode.Range(
+          document.positionAt(0),
+          document.positionAt(
+            document.getText()
+              .length)),
+        vscode.CodeActionKind.SourceOrganizeImports.value,
+        100);
+    for (const action of actions
+      ?? []) {
         // Our command-backed action delegates here; do not invoke it recursively.
-        if (action.disabled || action.command?.command === 'accentTs.format.organizeImports') continue;
-        if (action.edit) await vscode.workspace.applyEdit(action.edit);
+        if (action.disabled
+          || action.command?.command === 'accentTs.format.organizeImports') continue;
+        if (action.edit) await vscode.workspace.applyEdit(
+          action.edit);
         if (action.command) {
-            await vscode.commands.executeCommand(action.command.command, ...(action.command.arguments ?? []));
+            await vscode.commands.executeCommand(
+              action.command.command,
+              ...(action.command.arguments
+                ?? []));
         }
     }
 }
@@ -83,8 +97,11 @@ export function activate(context: vscode.ExtensionContext) {
         'accentTs.format.document',
         async (uri?: vscode.Uri) => {
             const editor = vscode.window.activeTextEditor;
-            const document = uri ? await vscode.workspace.openTextDocument(uri) : editor?.document;
-            if (!document || !isTargetLanguage(document.languageId)) {
+            const document = uri
+              ? await vscode.workspace.openTextDocument(uri)
+              : editor?.document;
+            if (!document
+              || !isTargetLanguage(document.languageId)) {
                 vscode.window.showWarningMessage(
                   'Accent Typescript Formatter: Please open a TypeScript file to format.');
                 return;
@@ -152,13 +169,17 @@ export function activate(context: vscode.ExtensionContext) {
         'accentTs.format.organizeImports',
         async (uri?: vscode.Uri) => {
             const editor = vscode.window.activeTextEditor;
-            const document = uri ? await vscode.workspace.openTextDocument(uri) : editor?.document;
-            if (!document || !isTargetLanguage(document.languageId)) {
+            const document = uri
+              ? await vscode.workspace.openTextDocument(uri)
+              : editor?.document;
+            if (!document
+              || !isTargetLanguage(document.languageId)) {
                 vscode.window.showWarningMessage(
                   'Accent Typescript Formatter: Please open a TypeScript file to organize imports.');
                 return;
             }
-            if (!getFormatterConfig(document).enabled) return;
+            if (!getFormatterConfig(document)
+              .enabled) return;
             await organizeDocumentImports(document);
             vscode.window.showInformationMessage(
               'Accent Typescript Formatter: Imports organized.');
@@ -251,7 +272,8 @@ export function activate(context: vscode.ExtensionContext) {
                 return;
             }
             const config = getFormatterConfig(event.document);
-            if (!config.enabled || !config.onSave) {
+            if (!config.enabled
+              || !config.onSave) {
                 return;
             }
             const formatter = new TsFormatter(config);
@@ -286,7 +308,8 @@ export function activate(context: vscode.ExtensionContext) {
                 return;
             }
             const config = getFormatterConfig(event.document);
-            if (!config.enabled || !config.formatOnChange) {
+            if (!config.enabled
+              || !config.formatOnChange) {
                 return;
             }
             if (changeDebounceTimer) {
@@ -299,8 +322,10 @@ export function activate(context: vscode.ExtensionContext) {
                     || editor.document !== event.document) {
                       return;
                   }
-                  const currentConfig = getFormatterConfig(event.document);
-                  if (!currentConfig.enabled || !currentConfig.formatOnChange) return;
+                  const currentConfig =
+                    getFormatterConfig(event.document);
+                  if (!currentConfig.enabled
+                    || !currentConfig.formatOnChange) return;
                   const formatter = new TsFormatter(currentConfig);
                   const original = event.document.getText();
                   const formatted = await formatter.formatDocument(
